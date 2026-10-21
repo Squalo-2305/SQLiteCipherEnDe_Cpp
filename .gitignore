@@ -1,0 +1,10 @@
+.vs/
+Debug/
+Release/
+x64/
+x86/
+*.db
+*.db-shm
+*.db-wal
+*.backup-*
+*.sqlcipher-temp-*
