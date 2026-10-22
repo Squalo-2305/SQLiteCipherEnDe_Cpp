@@ -8,47 +8,97 @@
 int wmain(int argc, wchar_t* argv[])
 {
     if (argc != 9) {
-        std::wcerr << L"Usage: SQLiteCipherEnDe.exe <mode> <version> -t <type_input> -p <path> -k <key>\n"
-            L"If passing the key in hex format, use the format hex:<key_value>\n"
-            L"Successful conversions replace the source and remove the temporary backup.\n";
+        std::wcerr
+            << L"Usage: SQLiteCipherEnDe.exe <mode> <version>"
+            << L" -t <type_input> -p <path> -k <key>\n"
+            << L"Options -t, -p, -k can be provided in any order.\n"
+            << L"If passing the key in hex format, use the format hex:<key_value>\n"
+            << L"Successful conversions replace the source and remove the temporary backup.\n";
         return 2;
     }
 
-    if (std::wstring(argv[3]) != L"-t"
-        || std::wstring(argv[5]) != L"-p"
-        || std::wstring(argv[7]) != L"-k")
-    {
-        std::wcerr << L"Options must be provided in this order: -t, -p, -k.\n";
+    std::wstring inputType;
+    std::wstring path;
+    std::wstring key;
+
+    bool hasType = false;
+    bool hasPath = false;
+    bool hasKey = false;
+
+    for (int i = 3; i < argc; i += 2) {
+        std::wstring option = argv[i];
+
+        if (i + 1 >= argc) {
+            std::wcerr << L"Missing value for option: "
+                << option << L'\n';
+            return 2;
+        }
+
+        std::wstring value = argv[i + 1];
+
+        if (option == L"-t") {
+            if (hasType) {
+                std::wcerr << L"Duplicate option: -t\n";
+                return 2;
+            }
+            inputType = value;
+            hasType = true;
+        }
+        else if (option == L"-p") {
+            if (hasPath) {
+                std::wcerr << L"Duplicate option: -p\n";
+                return 2;
+            }
+            path = value;
+            hasPath = true;
+        }
+        else if (option == L"-k") {
+            if (hasKey) {
+                std::wcerr << L"Duplicate option: -k\n";
+                return 2;
+            }
+            key = value;
+            hasKey = true;
+        }
+        else {
+            std::wcerr << L"Unknown option: " << option << L'\n';
+            return 2;
+        }
+    }
+
+    if (!hasType || !hasPath || !hasKey) {
+        std::wcerr
+            << L"Missing required options. Required: -t, -p, -k.\n";
         return 2;
     }
 
+    // Validate các argument
     std::wstring error;
-    if (!validateMode(argv[1], error))
-    {
+
+    if (!validateMode(argv[1], error)) {
         std::wcerr << L"Invalid mode: " << error << L'\n';
         return 2;
     }
-    if (!validateVersion(argv[2], error))
-    {
+
+    if (!validateVersion(argv[2], error)) {
         std::wcerr << L"Invalid version: " << error << L'\n';
         return 2;
     }
-    if (!validateInputType(argv[4], error))
-    {
+
+    if (!validateInputType(inputType.c_str(), error)) {
         std::wcerr << L"Invalid input type: " << error << L'\n';
         return 2;
     }
-    if (!validatePath(argv[4], argv[6], error))
-    {
+
+    if (!validatePath(inputType.c_str(), path.c_str(), error)) {
         std::wcerr << L"Invalid path: " << error << L'\n';
         return 2;
     }
 
     std::vector<unsigned char> keyBytes;
     bool isHex = false;
-    std::wstring key = argv[8];
-    if (!parseKey(key, keyBytes, isHex, error))
-    {
+
+    if (!parseKey(key, keyBytes, isHex, error)) {
         std::wcerr << L"Invalid key: " << error << L'\n';
         return 2;
     }
