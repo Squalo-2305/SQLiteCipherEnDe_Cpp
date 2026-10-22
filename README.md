@@ -1,4 +1,4 @@
-# SQLiteCipherEnDe
+# SQLiteCipherEnDe [C++]
 This project is intended for educational and research purposes only. Use it only with data you own or are explicitly authorized to access.
 
 A Windows C++ project that dynamically loads SQLCipher to encrypt/decrypt SQLite
